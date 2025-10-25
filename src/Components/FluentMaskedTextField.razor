@@ -1,0 +1,221 @@
+@namespace FluentMaskedTextField.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.FluentUI.AspNetCore.Components
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<FluentTextField @ref="textFieldRef"
+                 Id="@Id"
+                 @bind-Value="@Value"
+                 Label="@Label"
+                 Placeholder="@Placeholder"
+                 Disabled="@Disabled"
+                 ReadOnly="@ReadOnly"
+                 Required="@Required"
+                 @oninput="@OnInputHandler"
+                 @onchange="@OnChangeHandler"
+                 @onfocus="@OnFocusHandler"
+                 @onblur="@OnBlurHandler"
+                 autocomplete="@(Autocomplete ? "on" : "off")"
+                 Style="@Style"
+                 Class="@Class">
+</FluentTextField>
+
+@code {
+    private FluentTextField? textFieldRef;
+    private IJSObjectReference? maskModule;
+    private IJSObjectReference? maskInstance;
+    private string? internalValue;
+    private bool initialized;
+
+    /// <summary>
+    /// Unique identifier for the text field
+    /// </summary>
+    [Parameter]
+    public String? Id { get; set; }
+
+    /// <summary>
+    /// The value of the input field
+    /// </summary>
+    [Parameter]
+    public String? Value
+    {
+        get => internalValue;
+        set => internalValue = value;
+    }
+
+    /// <summary>
+    /// Event callback for value changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<String?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// Label for the text field
+    /// </summary>
+    [Parameter]
+    public String? Label { get; set; }
+
+    /// <summary>
+    /// Placeholder text
+    /// </summary>
+    [Parameter]
+    public String? Placeholder { get; set; }
+
+    /// <summary>
+    /// IMask.js mask pattern or options object JSON
+    /// Examples:
+    /// - Phone: "+1 (999) 999-9999"
+    /// - SSN: "999-99-9999"
+    /// - Credit Card: "9999 9999 9999 9999"
+    /// - Date: "99/99/9999"
+    /// - Custom: "{\"mask\": \"9999-9999\", \"lazy\": true}"
+    /// </summary>
+    [Parameter]
+    public String? Mask { get; set; }
+
+    /// <summary>
+    /// Whether the field is disabled
+    /// </summary>
+    [Parameter]
+    public Boolean Disabled { get; set; }
+
+    /// <summary>
+    /// Whether the field is read-only
+    /// </summary>
+    [Parameter]
+    public Boolean ReadOnly { get; set; }
+
+    /// <summary>
+    /// Whether the field is required for form validation
+    /// </summary>
+    [Parameter]
+    public Boolean Required { get; set; }
+
+    /// <summary>
+    /// Whether to enable browser autocomplete
+    /// </summary>
+    [Parameter]
+    public Boolean Autocomplete { get; set; } = true;
+
+    /// <summary>
+    /// Custom CSS style
+    /// </summary>
+    [Parameter]
+    public String? Style { get; set; }
+
+    /// <summary>
+    /// Custom CSS class
+    /// </summary>
+    [Parameter]
+    public String? Class { get; set; }
+
+    /// <summary>
+    /// Event callback when input is received (before validation)
+    /// </summary>
+    [Parameter]
+    public EventCallback<String?> OnInput { get; set; }
+
+    /// <summary>
+    /// Event callback when field loses focus
+    /// </summary>
+    [Parameter]
+    public EventCallback<String?> OnChange { get; set; }
+
+    /// <summary>
+    /// Event callback when field gains focus
+    /// </summary>
+    [Parameter]
+    public EventCallback OnFocus { get; set; }
+
+    /// <summary>
+    /// Event callback when field loses focus (blur)
+    /// </summary>
+    [Parameter]
+    public EventCallback OnBlur { get; set; }
+
+    /// <summary>
+    /// CascadingParameter for EditContext to support form validation
+    /// </summary>
+    [CascadingParameter]
+    EditContext? EditContext { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        // EditContext will be available during form submission
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !initialized && textFieldRef?.Element != null && !String.IsNullOrEmpty(Mask))
+        {
+            try
+            {
+                maskModule = await JS.InvokeAsync<IJSObjectReference>(
+                    "import", "./js/masking.js");
+
+                maskInstance = await maskModule.InvokeAsync<IJSObjectReference>(
+                    "initMask", textFieldRef.Element, Mask);
+
+                initialized = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing mask: {ex.Message}");
+            }
+        }
+    }
+
+    public async Task<string?> GetUnmaskedValue()
+    {
+        if (maskInstance is not null)
+        {
+            return await maskInstance.InvokeAsync<string>("getUnmaskedValue");
+        }
+        return null;
+    }
+
+    private async Task OnInputHandler(ChangeEventArgs e)
+    {
+        Value = e.Value as String;
+        await ValueChanged.InvokeAsync(Value);
+        await OnInput.InvokeAsync(Value);
+    }
+
+    private async Task OnChangeHandler(ChangeEventArgs e)
+    {
+        Value = e.Value as String;
+        await ValueChanged.InvokeAsync(Value);
+        await OnChange.InvokeAsync(Value);
+
+        // Notify EditContext of the change for validation
+        if (EditContext != null && !String.IsNullOrEmpty(Id))
+        {
+            EditContext.NotifyFieldChanged(new FieldIdentifier(EditContext.Model, Id));
+        }
+    }
+
+    private async Task OnFocusHandler(FocusEventArgs e)
+    {
+        await OnFocus.InvokeAsync();
+    }
+
+    private async Task OnBlurHandler(FocusEventArgs e)
+    {
+        await OnBlur.InvokeAsync();
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (maskInstance is not null)
+        {
+            await maskInstance.InvokeVoidAsync("destroy");
+            await maskInstance.DisposeAsync();
+        }
+
+        if (maskModule is not null)
+        {
+            await maskModule.DisposeAsync();
+        }
+    }
+}

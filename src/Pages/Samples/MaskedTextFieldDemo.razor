@@ -1,0 +1,393 @@
+@page "/samples/masked-textfield-demo"
+@using Blazored.FluentValidation
+@using FluentValidation
+@using Microsoft.AspNetCore.Components.Forms
+@using FluentMaskedTextField.Components
+
+<PageTitle>Masked TextField Demo</PageTitle>
+
+<h1>FluidUI Masked TextField Component</h1>
+<p>Demonstrates the FluentMaskedTextField component with IMask.js integration and FluentValidation.</p>
+
+<FluentGrid>
+    <!-- Basic Example -->
+    <FluentGridItem xs="12" sm="6">
+        <FluentCard>
+            <h3>Basic Masking</h3>
+            <p>Simple mask patterns without validation</p>
+
+            <h4>Phone Number</h4>
+            <FluentMaskedTextField Label="Phone Number"
+                                   Placeholder="Enter phone number"
+                                   Mask="+1 (000) 000-0000"
+                                   @bind-Value="basicPhoneNumber" />
+            <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                Value: <strong>@basicPhoneNumber</strong>
+            </p>
+
+            <h4 style="margin-top: 16px;">Social Security Number</h4>
+            <FluentMaskedTextField Label="SSN"
+                                   Placeholder="Enter SSN"
+                                   Mask="000-00-0000"
+                                   @bind-Value="basicSSN" />
+            <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                Value: <strong>@basicSSN</strong>
+            </p>
+
+            <h4 style="margin-top: 16px;">Credit Card</h4>
+            <FluentMaskedTextField Label="Card Number"
+                                   Placeholder="Enter credit card number"
+                                   Mask="0000 0000 0000 0000"
+                                   @bind-Value="basicCreditCard" />
+            <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                Value: <strong>@basicCreditCard</strong>
+            </p>
+
+            <h4 style="margin-top: 16px;">Date</h4>
+            <FluentMaskedTextField Label="Date (MM/DD/YYYY)"
+                                   Placeholder="MM/DD/YYYY"
+                                   Mask="00/00/0000"
+                                   @bind-Value="basicDate" />
+            <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                Value: <strong>@basicDate</strong>
+            </p>
+
+            <h4 style="margin-top: 16px;">Time</h4>
+            <FluentMaskedTextField Label="Time (HH:MM)"
+                                   Placeholder="HH:MM"
+                                   Mask="00:00"
+                                   @bind-Value="basicTime" />
+            <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                Value: <strong>@basicTime</strong>
+            </p>
+
+            <h4 style="margin-top: 16px;">IP Address</h4>
+            <FluentMaskedTextField Label="IP Address"
+                                   Placeholder="999.999.999.999"
+                                   Mask="000.000.000.000"
+                                   @bind-Value="basicIPAddress" />
+            <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                Value: <strong>@basicIPAddress</strong>
+            </p>
+        </FluentCard>
+    </FluentGridItem>
+
+    <!-- Validation Example -->
+    <FluentGridItem xs="12" sm="6">
+        <FluentCard>
+            <h3>With FluentValidation</h3>
+            <p>Masked fields integrated with form validation</p>
+
+            <EditForm Model="@validationModel" OnValidSubmit="HandleValidSubmit">
+                <FluentValidationValidator />
+
+                <h4>Contact Information</h4>
+
+                <FluentMaskedTextField Id="PhoneNumber"
+                                       Label="Phone Number *"
+                                       Placeholder="Enter phone number"
+                                       Mask="+1 (000) 000-0000"
+                                       @bind-Value="validationModel.PhoneNumber"
+                                       Required="true" />
+                <FluentValidationMessage For="@(() => validationModel.PhoneNumber)" Style="color: #d32f2f; font-size: 0.75rem; margin-top: 4px;" />
+
+                <h4 style="margin-top: 16px;">SSN *</h4>
+                <FluentMaskedTextField Id="SSN"
+                                       Label="Social Security Number"
+                                       Placeholder="Enter SSN"
+                                       Mask="000-00-0000"
+                                       @bind-Value="validationModel.SSN"
+                                       Required="true" />
+                <FluentValidationMessage For="@(() => validationModel.SSN)" Style="color: #d32f2f; font-size: 0.75rem; margin-top: 4px;" />
+
+                <h4 style="margin-top: 16px;">Expiration Date *</h4>
+                <FluentMaskedTextField Id="ExpirationDate"
+                                       Label="MM/YY"
+                                       Placeholder="MM/YY"
+                                       Mask="00/00"
+                                       @bind-Value="validationModel.ExpirationDate"
+                                       Required="true" />
+                <FluentValidationMessage For="@(() => validationModel.ExpirationDate)" Style="color: #d32f2f; font-size: 0.75rem; margin-top: 4px;" />
+
+                <h4 style="margin-top: 16px;">ZIP Code *</h4>
+                <FluentMaskedTextField Id="ZIPCode"
+                                       Label="ZIP Code"
+                                       Placeholder="Enter ZIP code"
+                                       Mask="00000"
+                                       @bind-Value="validationModel.ZIPCode"
+                                       Required="true" />
+                <FluentValidationMessage For="@(() => validationModel.ZIPCode)" Style="color: #d32f2f; font-size: 0.75rem; margin-top: 4px;" />
+
+                <div style="margin-top: 20px; display: flex; gap: 8px;">
+                    <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent">Submit</FluentButton>
+                    <FluentButton Type="ButtonType.Button" Appearance="Appearance.Neutral" @onclick="ResetValidationForm">Reset</FluentButton>
+                </div>
+
+                @if (validationSuccess)
+                {
+                    <div style="margin-top: 16px; padding: 12px; background-color: #e8f5e9; border-radius: 4px; color: #2e7d32;">
+                        ✓ Form submitted successfully!
+                        <ul style="margin: 8px 0 0 16px;">
+                            <li>Phone: @validationModel.PhoneNumber</li>
+                            <li>SSN: @validationModel.SSN</li>
+                            <li>Expiration: @validationModel.ExpirationDate</li>
+                            <li>ZIP: @validationModel.ZIPCode</li>
+                        </ul>
+                    </div>
+                }
+            </EditForm>
+        </FluentCard>
+    </FluentGridItem>
+
+    <!-- Advanced Options Example -->
+    <FluentGridItem xs="12">
+        <FluentCard>
+            <h3>Advanced IMask.js Options</h3>
+            <p>Complex mask patterns with custom options (JSON)</p>
+
+            <FluentGrid>
+                <FluentGridItem xs="12" sm="6">
+                    <h4>Currency Input (US)</h4>
+                    <p style="font-size: 0.875rem; color: #757575;">
+                        Mask pattern: Currency with thousand separators and two decimal places
+                    </p>
+                    <FluentMaskedTextField Label="Amount"
+                                           Placeholder="$0.00"
+                                           Mask="@CurrencyMaskOptions"
+                                           @bind-Value="advancedCurrency" />
+                    <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                        Value: <strong>@advancedCurrency</strong>
+                    </p>
+                </FluentGridItem>
+
+                <FluentGridItem xs="12" sm="6">
+                    <h4>Flexible Phone Number</h4>
+                    <p style="font-size: 0.875rem; color: #757575;">
+                        Flexible pattern that allows optional parentheses and formatting
+                    </p>
+                    <FluentMaskedTextField Label="Phone (Flexible)"
+                                           Placeholder="(123) 456-7890"
+                                           Mask="@FlexiblePhoneMaskOptions"
+                                           @bind-Value="advancedFlexiblePhone" />
+                    <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                        Value: <strong>@advancedFlexiblePhone</strong>
+                    </p>
+                </FluentGridItem>
+
+                <FluentGridItem xs="12" sm="6">
+                    <h4>Lazy Masking</h4>
+                    <p style="font-size: 0.875rem; color: #757575;">
+                        Mask only shows as you type (lazy: true)
+                    </p>
+                    <FluentMaskedTextField Label="Card Number (Lazy)"
+                                           Placeholder="Enter card number"
+                                           Mask="@LazyMaskOptions"
+                                           @bind-Value="advancedLazyCard" />
+                    <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                        Value: <strong>@advancedLazyCard</strong>
+                    </p>
+                </FluentGridItem>
+
+                <FluentGridItem xs="12" sm="6">
+                    <h4>Regex Pattern Mask</h4>
+                    <p style="font-size: 0.875rem; color: #757575;">
+                        Using regex for more control over input characters
+                    </p>
+                    <FluentMaskedTextField Label="Alphanumeric"
+                                           Placeholder="Enter alphanumeric"
+                                           Mask="@RegexMaskOptions"
+                                           @bind-Value="advancedRegex" />
+                    <p style="margin-top: 8px; font-size: 0.875rem; color: #424242;">
+                        Value: <strong>@advancedRegex</strong>
+                    </p>
+                </FluentGridItem>
+            </FluentGrid>
+        </FluentCard>
+    </FluentGridItem>
+
+    <!-- Event Handlers Example -->
+    <FluentGridItem xs="12">
+        <FluentCard>
+            <h3>Event Handlers</h3>
+            <p>Demonstrates component events and interactions</p>
+
+            <h4>Interactive Field</h4>
+            <FluentMaskedTextField Label="Watch for events"
+                                   Placeholder="Start typing..."
+                                   Mask="000-000-0000"
+                                   @bind-Value="eventValue"
+                                   OnFocus="HandleFocus"
+                                   OnBlur="HandleBlur"
+                                   OnInput="HandleInput"
+                                   OnChange="HandleChange" />
+
+            <div style="margin-top: 16px; padding: 12px; background-color: #f5f5f5; border-radius: 4px;">
+                <h5>Event Log:</h5>
+                <ul style="list-style: none; padding: 0; margin: 8px 0 0 0;">
+                    @foreach (var log in eventLog.TakeLast(5))
+                    {
+                        <li style="padding: 4px 0; font-size: 0.875rem; color: #666;">
+                            @log
+                        </li>
+                    }
+                </ul>
+                <button style="margin-top: 8px; padding: 6px 12px; font-size: 0.875rem;" @onclick="ClearEventLog">Clear Log</button>
+            </div>
+        </FluentCard>
+    </FluentGridItem>
+</FluentGrid>
+
+<style>
+    h1 {
+        margin-bottom: 8px;
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    p {
+        color: #666;
+        margin-bottom: 16px;
+    }
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    h4 {
+        margin: 16px 0 8px 0;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    h5 {
+        margin: 0 0 8px 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    ul {
+        margin: 8px 0;
+        padding-left: 24px;
+    }
+
+    li {
+        margin: 4px 0;
+    }
+</style>
+
+@code {
+    // Basic masking examples
+    private String? basicPhoneNumber;
+    private String? basicSSN;
+    private String? basicCreditCard;
+    private String? basicDate;
+    private String? basicTime;
+    private String? basicIPAddress;
+
+    // Validation example
+    private ContactFormModel validationModel = new();
+    private bool validationSuccess;
+
+    // Advanced options examples
+    private String? advancedCurrency;
+    private String? advancedFlexiblePhone;
+    private String? advancedLazyCard;
+    private String? advancedRegex;
+
+    // Event handling
+    private String? eventValue;
+    private List<String> eventLog = new();
+
+    private void HandleValidSubmit()
+    {
+        validationSuccess = true;
+    }
+
+    private void ResetValidationForm()
+    {
+        validationModel = new();
+        validationSuccess = false;
+    }
+
+    private async Task HandleFocus()
+    {
+        eventLog.Add($"[{DateTime.Now:HH:mm:ss.fff}] Focus - Value: {eventValue ?? "(empty)"}");
+        await Task.Delay(50); // Small delay to ensure UI updates
+        StateHasChanged();
+    }
+
+    private async Task HandleBlur()
+    {
+        eventLog.Add($"[{DateTime.Now:HH:mm:ss.fff}] Blur - Value: {eventValue ?? "(empty)"}");
+        await Task.Delay(50);
+        StateHasChanged();
+    }
+
+    private async Task HandleInput(String? value)
+    {
+        eventLog.Add($"[{DateTime.Now:HH:mm:ss.fff}] Input - Value: {value ?? "(empty)"}");
+        await Task.Delay(50);
+        StateHasChanged();
+    }
+
+    private async Task HandleChange(String? value)
+    {
+        eventLog.Add($"[{DateTime.Now:HH:mm:ss.fff}] Change - Value: {value ?? "(empty)"}");
+        await Task.Delay(50);
+        StateHasChanged();
+    }
+
+    private void ClearEventLog()
+    {
+        eventLog.Clear();
+    }
+
+    // Validation model
+    public class ContactFormModel
+    {
+        public String? PhoneNumber { get; set; }
+        public String? SSN { get; set; }
+        public String? ExpirationDate { get; set; }
+        public String? ZIPCode { get; set; }
+    }
+
+    // FluentValidation validator
+    public class ContactFormValidator : AbstractValidator<ContactFormModel>
+    {
+        public ContactFormValidator()
+        {
+            RuleFor(x => x.PhoneNumber)
+                .NotEmpty()
+                .WithMessage("Phone number is required")
+                .Matches(@"^\+1 \(\d{3}\) \d{3}-\d{4}$")
+                .WithMessage("Phone number must match format: +1 (999) 999-9999");
+
+            RuleFor(x => x.SSN)
+                .NotEmpty()
+                .WithMessage("SSN is required")
+                .Matches(@"^\d{3}-\d{2}-\d{4}$")
+                .WithMessage("SSN must match format: 999-99-9999");
+
+            RuleFor(x => x.ExpirationDate)
+                .NotEmpty()
+                .WithMessage("Expiration date is required")
+                .Matches(@"^\d{2}/\d{2}$")
+                .WithMessage("Expiration date must match format: MM/YY");
+
+            RuleFor(x => x.ZIPCode)
+                .NotEmpty()
+                .WithMessage("ZIP code is required")
+                .Matches(@"^\d{5}$")
+                .WithMessage("ZIP code must be 5 digits");
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Register the validator for dependency injection
+        var validator = new ContactFormValidator();
+    }
+}

@@ -4,6 +4,12 @@ A Blazor component wrapping Fluent UI [Text Field](https://fluentui-blazor.azure
 
 Created with help of Microsoft Copilot in Visual Studio and Anthropic Claude Haiku 4.5 AI model.
 
+## ⚡ Note on FluentUI Blazor v5
+
+**FluentUI Blazor v5** has introduced a `MaskedPattern` parameter to the `FluentTextField` component. See [TextInput Masked Input Docs](https://fluentui-blazor-v5.azurewebsites.net/TextInput#masked-input) for details.
+
+This `FluentMaskedTextField` component provides an alternative with IMask.js integration.
+
 ## 📚 Documentation
 
 - [FluentMaskedTextField Component Documentation](src/Components/FluentMaskedTextField.md) - Complete component guide with usage examples, parameters, and advanced options.
